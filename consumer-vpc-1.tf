@@ -6,12 +6,12 @@ resource "aws_vpc" "vpc_1" {
   }
 }
 
-resource "aws_subnet" "subnet1" {
+resource "aws_subnet" "subnet1_vpc1" {
   vpc_id     = aws_vpc.vpc_1.id
   cidr_block = "10.0.1.0/24"
 }
 
-resource "aws_subnet" "subnet2" {
+resource "aws_subnet" "subnet2_vpc1" {
   vpc_id     = aws_vpc.vpc_1.id
   cidr_block = "10.0.2.0/24"
 }
@@ -20,18 +20,18 @@ resource "aws_route_table" "private" {
   vpc_id = aws_vpc.vpc_1.id
 }
 
-resource "aws_route_table_association" "private_subnet1" {
-  subnet_id      = aws_subnet.subnet1.id
+resource "aws_route_table_association" "private_subnet1_vpc1" {
+  subnet_id      = aws_subnet.subnet1_vpc1.id
   route_table_id = aws_route_table.private.id
 }
 
-resource "aws_route_table_association" "private_subnet2" {
-  subnet_id      = aws_subnet.subnet2.id
+resource "aws_route_table_association" "private_subnet2_vpc1" {
+  subnet_id      = aws_subnet.subnet2_vpc1.id
   route_table_id = aws_route_table.private.id
 }
 
 
-resource "aws_security_group" "egress_https" {
+resource "aws_security_group" "egress_https_vpc1" {
   name        = "allow_https"
   description = "Allow HTTPS outbound traffic"
   vpc_id      = aws_vpc.vpc_1.id
@@ -45,7 +45,7 @@ resource "aws_security_group" "egress_https" {
 }
 
 
-resource "aws_security_group" "egress_http" {
+resource "aws_security_group" "egress_http_vpc1" {
   name        = "allow_http"
   description = "Allow HTTP outbound traffic"
   vpc_id      = aws_vpc.vpc_1.id
@@ -59,12 +59,16 @@ resource "aws_security_group" "egress_http" {
 }
 
 
-output "egress_https_sg" {
+output "egress_https_sg_vpc1_id" {
   description = "The ID of the security group"
-  value       = aws_security_group.egress_https
+  value       = aws_security_group.egress_https_vpc1.id
 }
 
-output "egress_http_sg" {
+output "egress_http_sg_vpc1_id" {
   description = "The ID of the security group"
-  value       = aws_security_group.egress_http
+  value       = aws_security_group.egress_http_vpc1.id
+}
+
+output "vpc_1_id" {
+    value = aws_vpc.vpc_1.id
 }
