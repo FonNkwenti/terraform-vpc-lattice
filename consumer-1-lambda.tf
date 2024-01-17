@@ -40,7 +40,6 @@ resource "aws_lambda_function" "consumer_1_lambda" {
 
     depends_on = [
     aws_iam_role_policy_attachment.lambda_logs,
-    # aws_cloudwatch_log_group.consumer_1_log_group,
   ]
 
 }
@@ -72,7 +71,7 @@ resource "aws_iam_policy" "consumer_1_lambda_logging" {
   policy      = data.aws_iam_policy_document.consumer_1_lambda_logging.json
 }
 
-resource "aws_iam_role_policy_attachment" "lambda_logs" {
+resource "aws_iam_role_policy_attachment" "consumer_1_lambda_logs" {
   role       = aws_iam_role.consumer_1_lambda_exec_role.name
   policy_arn = aws_iam_policy.consumer_1_lambda_logging.arn
 }
