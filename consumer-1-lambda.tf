@@ -39,7 +39,7 @@ resource "aws_lambda_function" "consumer_1_lambda" {
   }
 
     depends_on = [
-    aws_iam_role_policy_attachment.lambda_logs,
+    aws_iam_role_policy_attachment.consumer_1_lambda_logs,
   ]
 
 }
