@@ -62,6 +62,7 @@ resource "aws_vpclattice_listener" "https_listener" {
   }
 }
 
+
 # listener rule for path based routing to lambda target groups
 resource "aws_vpclattice_listener_rule" "service_network_listener_rule" {
   name                = "service-network-listener-rule"
@@ -78,21 +79,22 @@ resource "aws_vpclattice_listener_rule" "service_network_listener_rule" {
       }
     }
   }
-  # action {
-  #   fixed_response {
-  #     status_code = 404
-  #   }
-
-  # }
   action {
-    forward {
-      target_groups {
-        target_group_identifier = aws_vpclattice_target_group.lambda_1_tg.id
-      }
-
+    fixed_response {
+      status_code = 404
     }
 
   }
+    /*
+    action {
+        forward {
+        target_groups {
+            target_group_identifier = aws_vpclattice_target_group.lambda_1_tg.id
+        }
 
+        }
+
+    }
+    */
 depends_on = [ aws_vpclattice_listener.https_listener ]
 }

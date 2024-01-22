@@ -8,6 +8,23 @@ data "aws_iam_policy_document" "assume_role" {
     }
 
     actions = ["sts:AssumeRole"]
+    
+  }
+
+}
+
+data "aws_iam_policy_document" "lambda_private_permissions" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "ec2:CreateNetworkInterface",
+      "ec2:DescribeNetworkInterfaces",
+      "ec2:CreateNetworkInterface",
+      "ec2:DeleteNetworkInterface",
+      "ec2:DescribeInstances",
+      "ec2:AttachNetworkInterface"
+    ]
+    resources = ["*"]
   }
 }
 
@@ -16,12 +33,13 @@ resource "aws_iam_role" "consumer_1_lambda_exec_role" {
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
 
-# generate an archive for the src/consumer-1/index.js function
-data "archive_file" "consumer_1_lambda" {
-  type        = "zip"
-  source_dir = "${path.module}/src/consumer-1/"
-  output_path = "${path.module}/src/consumer-1/index.zip"
+resource "aws_iam_role_policy" "consumer_1_lambda_private_permissions" {
+  name   = "consumer_1_lambda_private_permissions"
+  role   = aws_iam_role.consumer_1_lambda_exec_role.id
+  policy = data.aws_iam_policy_document.lambda_private_permissions.json
 }
+
+# generate an archive for the src/consumer-1/index.js function
 
 resource "aws_lambda_function" "consumer_1_lambda" {
   filename      = "${path.module}/src/consumer-1/index.zip"
@@ -43,6 +61,13 @@ resource "aws_lambda_function" "consumer_1_lambda" {
   ]
 
 }
+
+data "archive_file" "consumer_1_lambda" {
+  type        = "zip"
+  source_dir = "${path.module}/src/consumer-1/"
+  output_path = "${path.module}/src/consumer-1/index.zip"
+}
+
 
 resource "aws_cloudwatch_log_group" "consumer_1_log_group" {
   name              = "/aws/lambda/${aws_lambda_function.consumer_1_lambda.function_name}"
@@ -75,4 +100,3 @@ resource "aws_iam_role_policy_attachment" "consumer_1_lambda_logs" {
   role       = aws_iam_role.consumer_1_lambda_exec_role.name
   policy_arn = aws_iam_policy.consumer_1_lambda_logging.arn
 }
-
