@@ -1,39 +1,3 @@
-
-# create amazon vpc lattice service network
-resource "aws_vpclattice_service_network" "service_network" {
-  name = "service-network"
-}
-
-# Todo - auth policy for service network
-
-
-# create vpc lattice service network vpc associations for consumer VPCs
-resource "aws_vpclattice_service_network_vpc_association" "vpc_1_association" {
-  vpc_identifier             = aws_vpc.vpc_1.id
-  service_network_identifier = aws_vpclattice_service_network.service_network.id
-#   security_group_ids         = [aws_security_group.example.id]
-}
-
-# create vpc lattice service network service association for our service
-resource "aws_vpclattice_service_network_service_association" "service_association" {
-    service_identifier = aws_vpclattice_service.service_1.id
-    service_network_identifier = aws_vpclattice_service_network.service_network.id
-
-}
-
-# create a lattice access log subscription for our service network log group
-resource "aws_vpclattice_access_log_subscription" "log_subscription" {
-  resource_identifier = aws_vpclattice_service_network.service_network.id
-  destination_arn     = aws_cloudwatch_log_group.log_group_lattice.arn
-}
-
-# create a cloud watch log group for our lattice service network
-resource "aws_cloudwatch_log_group" "log_group_lattice" {
-  name              = "/aws/lattice/service-network/service-network"
-  retention_in_days = 7
-}
-
-/*
 # create vpc lattice service for lambda target group
 resource "aws_vpclattice_service" "service_1" {
   name = "service-1"
@@ -46,15 +10,18 @@ resource "aws_vpclattice_service" "service_1" {
 
 # Todo auth policy for service
 #################
-resource "aws_vpclattice_access_log_subscription" "log_subscription" {
-  resource_identifier = aws_vpclattice_service.service_1.id
-  destination_arn     = aws_cloudwatch_log_group.log_group_lattice.arn
-}
-resource "aws_cloudwatch_log_group" "log_group_lattice" {
+
+
+resource "aws_cloudwatch_log_group" "lattice_service_1_log_group" {
   name              = "/aws/lattice/service/service-1"
   retention_in_days = 7
 }
 
+# log subscription for lattice service
+resource "aws_vpclattice_access_log_subscription" "lattice_service_1_log_subscription" {
+  resource_identifier = aws_vpclattice_service.service_1.id
+  destination_arn     = aws_cloudwatch_log_group.lattice_service_1_log_group.arn
+}
 
 
 #create a lambda target group
@@ -67,14 +34,11 @@ resource "aws_vpclattice_target_group" "lambda_1_tg" {
 resource "aws_vpclattice_target_group_attachment" "lambda_1_tg_attachement" {
   target_group_identifier = aws_vpclattice_target_group.lambda_1_tg.id
   target {
-    # id = aws_lambda_function.lambda_function.arn
-    id = "arn:aws:lambda:us-west-2:404148889442:function:cloudgto-service-builder-prv-build-s3"
+    id = aws_lambda_function.lambda_target_1.arn
   }
   depends_on = [ aws_vpclattice_target_group.lambda_1_tg ]
 
-
 }
-
 
 
 # use aws_vpclattice_listener resource to create listeners and rules for our service-1 and lambda-tg
@@ -132,5 +96,3 @@ resource "aws_vpclattice_listener_rule" "service_network_listener_rule" {
 
 depends_on = [ aws_vpclattice_listener.https_listener ]
 }
-
-*/

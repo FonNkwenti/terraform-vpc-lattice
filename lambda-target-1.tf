@@ -11,6 +11,7 @@ data "aws_iam_policy_document" "lambda_target_assume_role" {
   }
 }
 
+# IAM role which dictates what other AWS services the Lambda function may access.
 resource "aws_iam_role" "lambda_target_1_exec_role" {
   name               = "service_1_lambda_target_1_exec_role"
   assume_role_policy = data.aws_iam_policy_document.lambda_target_assume_role.json
@@ -28,9 +29,7 @@ resource "aws_lambda_function" "lambda_target_1" {
   function_name = "lambda_target_1"
   role          = aws_iam_role.lambda_target_1_exec_role.arn
   handler       = "index.handler"
-
   source_code_hash = data.archive_file.lambda_target_1.output_base64sha256
-
   runtime = "nodejs18.x"
 
 #     depends_on = [
