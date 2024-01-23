@@ -39,6 +39,11 @@ resource "aws_iam_role_policy" "consumer_1_lambda_private_permissions" {
   policy = data.aws_iam_policy_document.lambda_private_permissions.json
 }
 
+resource "aws_iam_role_policy" "lambda_lattice_invoke_policy" {
+  name   = "lambda_lattice_invoke_policy"
+  role   = aws_iam_role.consumer_1_lambda_exec_role.id
+  policy = data.aws_iam_policy_document.lambda_lattice_invoke_policy.json
+}
 # generate an archive for the src/consumer-1/index.js function
 
 resource "aws_lambda_function" "consumer_1_lambda" {

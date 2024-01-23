@@ -134,3 +134,39 @@ depends_on = [ aws_vpclattice_listener.https_listener ]
 }
 
 */
+
+
+
+// sample auth policy to allow only traffic originating from specific vpc to invoke the vpc lattice Invoke api
+
+/*
+{
+    "Version": "2008-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "*"
+            },
+            "Action": "vpc-lattice-svcs:Invoke",
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "vpc-lattice-svcs:SourceVpc": [
+                        "vpc-id-for-vpc-1",
+                        "vpc-id-for-vpc-2",
+                        "vpc-id-for-vpc-3",
+                        "vpc-id-for-vpc-4"
+                    ]
+                }
+            }
+        }
+    ]
+}
+*/
+output "aws_vpclattice_service_network_id" {
+    value = aws_vpclattice_service_network.service_network.id
+}
+output "aws_vpclattice_service_network_arn" {
+    value = aws_vpclattice_service_network.service_network.arn
+}

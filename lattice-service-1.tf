@@ -8,7 +8,28 @@ resource "aws_vpclattice_service" "service_1" {
 }
 
 
-# Todo auth policy for service
+# This auth policy only allows traffic from the associated service network and allows only authenticated requests:
+/*
+{
+    "Version": "2008-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "vpc-lattice-svcs:Invoke",
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "vpc-lattice-svcs:ServiceNetworkArn": "arn:aws:vpc-lattice:us-east-1:001122334455:servicenetwork/your-service-network-id"
+                },
+                "StringNotEquals": {
+                    "aws:PrincipalType": "Anonymous"
+                }
+            }
+        }
+    ]
+}
+*/
 #################
 
 
@@ -28,16 +49,20 @@ resource "aws_vpclattice_access_log_subscription" "lattice_service_1_log_subscri
 resource "aws_vpclattice_target_group" "lambda_1_tg" {
   name = "lambda-tg"
   type = "LAMBDA"
+#   tags = {
+#     Name        = "Lambda 1 Target Group"
+#  }
+
 }
 
 # create vpc lattice target group attachment
 resource "aws_vpclattice_target_group_attachment" "lambda_1_tg_attachement" {
-  target_group_identifier = aws_vpclattice_target_group.lambda_1_tg.id
+  target_group_identifier = aws_vpclattice_target_group.lambda_1_tg.arn
   target {
     id = aws_lambda_function.lambda_target_1.arn
+    # port = 80
   }
-  depends_on = [ aws_vpclattice_target_group.lambda_1_tg ]
-
+#   depends_on = [ aws_vpclattice_target_group.lambda_1_tg ]
 }
 
 
@@ -97,4 +122,12 @@ resource "aws_vpclattice_listener_rule" "service_network_listener_rule" {
     }
     */
 depends_on = [ aws_vpclattice_listener.https_listener ]
+}
+
+
+output "lattice_service_1_id" {
+    value = aws_vpclattice_service.service_1.id
+}
+output "lattice_service_1_arn" {
+    value = aws_vpclattice_service.service_1.arn
 }

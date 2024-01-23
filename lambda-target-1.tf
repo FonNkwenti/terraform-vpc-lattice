@@ -1,20 +1,24 @@
-data "aws_iam_policy_document" "lambda_target_assume_role" {
-  statement {
-    effect = "Allow"
+# data "aws_iam_policy_document" "lambda_target_assume_role" {
+#   statement {
+#     effect = "Allow"
 
-    principals {
-      type        = "Service"
-      identifiers = ["lambda.amazonaws.com"]
-    }
+#     principals {
+#       type        = "Service"
+#       identifiers = ["lambda.amazonaws.com"]
+#     }
 
-    actions = ["sts:AssumeRole"]
-  }
-}
+#     actions = ["sts:AssumeRole"]
+#   }
+# }
 
-# IAM role which dictates what other AWS services the Lambda function may access.
+# # IAM role which dictates what other AWS services the Lambda function may access.
+# resource "aws_iam_role" "lambda_target_1_exec_role" {
+#   name               = "service_1_lambda_target_1_exec_role"
+#   assume_role_policy = data.aws_iam_policy_document.lambda_target_assume_role.json
+# }
 resource "aws_iam_role" "lambda_target_1_exec_role" {
   name               = "service_1_lambda_target_1_exec_role"
-  assume_role_policy = data.aws_iam_policy_document.lambda_target_assume_role.json
+  assume_role_policy = data.aws_iam_policy_document.lambda_role.json
 }
 
 # generate an archive for the src/targets/lambda-target-1/index.js function
@@ -31,6 +35,12 @@ resource "aws_lambda_function" "lambda_target_1" {
   handler       = "index.handler"
   source_code_hash = data.archive_file.lambda_target_1.output_base64sha256
   runtime = "nodejs18.x"
+
+  environment {
+    variables = {
+      LAMBDA_1_TARGET_NAME = "lambda_target_1"
+    }
+  }
 
 #     depends_on = [
 #     aws_iam_role_policy_attachment.lambda_logs,
