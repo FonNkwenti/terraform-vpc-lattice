@@ -22,7 +22,8 @@ data "aws_iam_policy_document" "lambda_private_permissions" {
       "ec2:CreateNetworkInterface",
       "ec2:DeleteNetworkInterface",
       "ec2:DescribeInstances",
-      "ec2:AttachNetworkInterface"
+      "ec2:AttachNetworkInterface",
+      "vpc-lattice:Invoke"
     ]
     resources = ["*"]
   }
@@ -45,12 +46,18 @@ resource "aws_iam_role_policy" "lambda_lattice_invoke_policy" {
   policy = data.aws_iam_policy_document.lambda_lattice_invoke_policy.json
 }
 # generate an archive for the src/consumer-1/index.js function
+data "archive_file" "consumer_1_lambda" {
+  type        = "zip"
+  source_dir = "${path.module}/src/consumer-1/"
+  output_path = "${path.module}/src/consumer-1/index.zip"
+}
 
 resource "aws_lambda_function" "consumer_1_lambda" {
   filename      = "${path.module}/src/consumer-1/index.zip"
   function_name = "consumer_1_lambda"
   role          = aws_iam_role.consumer_1_lambda_exec_role.arn
   handler       = "index.handler"
+  timeout = "90"
 
   source_code_hash = data.archive_file.consumer_1_lambda.output_base64sha256
 
@@ -65,13 +72,14 @@ resource "aws_lambda_function" "consumer_1_lambda" {
     aws_iam_role_policy_attachment.consumer_1_lambda_logs,
   ]
 
+  environment {
+    variables = {
+      LATTICE_SERVICE_ENDPOINT  = aws_vpclattice_service.service_1.dns_entry[0].domain_name
+    }
+  }
+
 }
 
-data "archive_file" "consumer_1_lambda" {
-  type        = "zip"
-  source_dir = "${path.module}/src/consumer-1/"
-  output_path = "${path.module}/src/consumer-1/index.zip"
-}
 
 
 resource "aws_cloudwatch_log_group" "consumer_1_log_group" {

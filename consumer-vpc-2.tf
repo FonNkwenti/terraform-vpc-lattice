@@ -71,3 +71,10 @@ output "egress_http_sg_vpc2_id" {
 output "vpc_2_id" {
     value = aws_vpc.vpc_2.id
 }
+
+output "aws_subnet_subnet1_vpc_2_id" {
+    value = aws_subnet.subnet1_vpc2.id
+}
+output "aws_subnet_subnet2_vpc_2_id" {
+    value = aws_subnet.subnet2_vpc2.id
+}

@@ -1,19 +1,12 @@
+/*
 
-//    exports.handler = async (event, context) => {
-//     console.log("Hello World from Lambda!");
-//     console.log("event===",JSON.stringify(event, null, 2))
-//     return {
-//         statusCode: 200,
-//         body: JSON.stringify({ message: "Hello World" }),
-//     };
-// };
+// invoking the lattice service lambda function using the AWS SDK Lambda client
+const { LambdaClient, InvokeCommand } = require( '@aws-sdk/client-lambda');
 
-import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
-
-
-
-export const handler = async (event, context) => {
-    const functionName = process.env.LAMBDA_1_TARGET_NAME
+exports.handler = async (event, context) => {
+    // const functionName = process.env.LAMBDA_1_TARGET_NAME
+    const functionName = 'lambda_target_1'
+    console.log("functionName===", functionName)
   try {
     const lambdaClient = new LambdaClient();
 
@@ -45,4 +38,190 @@ export const handler = async (event, context) => {
       body: JSON.stringify('Internal Server Error'),
     };
   }
+};
+
+
+
+*/
+
+
+
+/*
+const AWS = require('aws-sdk')
+const https = require('https')
+const axios = require("axios")
+// create a lambda function that uses axios to make and http post request with an example payload. use try catch for error handling
+exports.handler = async (event, context) => {
+  console.log("event===", event)
+  const latticeServiceEndpoint = process.env.LATTICE_SERVICE_ENDPOINT
+
+  const endpoint = `https://${latticeServiceEndpoint}/path-1`
+  console.log("endpoint", endpoint)
+  try {
+    const payload = {
+      name: 'Jonathan',
+      age: 25
+    }
+    const response = await axios.post(endpoint, payload)
+    console.log("response===",response.data)
+    return response.data;
+
+  //   const request = new AWS.HttpRequest(endpoint, 'us-east-1');
+  //   request.method = "POST";
+  //   request.headers = {
+  //     'content-type': 'application/json',
+  // };
+
+    // console.log("request===",request)
+    // return request.data
+    
+  } catch (error) {
+    console.error(error)
+    
+  }
+}
+
+
+*/
+
+
+
+const AWS = require('aws-sdk');
+const https = require('https');
+
+const region = process.env.AWS_REGION || 'us-east-2';
+const latticeEndpoint = process.env.LATTICE_SERVICE_ENDPOINT || 'undefined';
+console.log("latticeEndpoint===", latticeEndpoint)
+
+AWS.config.update({ region });
+
+const xRay = require('aws-xray-sdk-core');
+xRay.captureHTTPsGlobal(require('https'));
+
+const buildResponse = (code, body) => {
+    const headers = {
+        'Content-Type': 'application/json',
+    };
+
+    const response = {
+        isBase64Encoded: false,
+        statusCode: code,
+        headers,
+        body,
+    };
+
+    return response;
+};
+
+const parseFlag = (event, flag) => {
+    return flag in event && event[flag];
+};
+
+const sendRequest = async (event, addSigV4 = false, debug = false) => {
+    const headers = {
+        'content-type': 'application/json',
+    };
+
+    const endpoint = event.endpoint || `https://${latticeEndpoint}/path-1`;
+    const method = event.method || 'GET';
+    const data = JSON.stringify(event.data || {});
+
+    const request = new AWS.HttpRequest(endpoint, region);
+    request.method = method;
+    request.headers = headers;
+    request.body = data;
+    console.log("request===",JSON.stringify(request))
+
+    if (addSigV4) {
+        console.log(JSON.stringify({
+            message: 'sigv4 signing the request',
+        })) 
+
+        const credentials = new AWS.EnvironmentCredentials('AWS');
+        const signer = new AWS.Signers.V4(request, 'vpc-lattice-svcs');
+        signer.addAuthorization(credentials, new Date());
+    }
+
+    const timeout = 5000;
+    let output = {};
+
+    try {
+        console.log("endpoint===",JSON.stringify({
+            endpoint,
+        })) 
+
+        const response = await new Promise((resolve, reject) => {
+            const req = https.request(endpoint, {
+                method,
+                headers,
+                timeout,
+            }, (res) => {
+                let data = '';
+
+                res.on('data', (chunk) => {
+                    data += chunk;
+                });
+
+                res.on('end', () => {
+                    resolve({
+                        status_code: res.statusCode,
+                        reason: res.statusMessage,
+                        body: data,
+                    });
+                });
+            });
+
+            req.on('error', (err) => {
+                reject(err);
+            });
+
+            if (method === 'POST' || method === 'PUT') {
+                req.write(data);
+            }
+
+            req.end();
+        });
+
+        if (response.status_code === 200) {
+            output = JSON.parse(response.body);
+        } else {
+            output = {
+                status_code: response.status_code,
+                reason: response.reason,
+            };
+        }
+    } catch (error) {
+      console.error(error)
+        output = {
+            status_code: 504,
+            reason: `request to vpc lattice backend timed out (${timeout / 1000} seconds)`,
+        };
+    }
+
+    return output;
+};
+
+exports.handler = async (event) => {
+    console.log("event====",JSON.stringify(event));
+
+    const body = event.body;
+    // const body = JSON.parse(event.body);
+    
+    const enableSigV4 = parseFlag(body, 'sigv4');
+    const enableDebug = parseFlag(body, 'debug');
+
+    console.log(JSON.stringify({
+        enableSigV4,
+        enableDebug,
+    }));
+
+    const output = await sendRequest(body, enableSigV4, enableDebug);
+
+    console.log("output", JSON.stringify(output));
+
+    const response = buildResponse(200, JSON.stringify(output));
+
+    console.log("response===",JSON.stringify(response));
+
+    return response;
 };

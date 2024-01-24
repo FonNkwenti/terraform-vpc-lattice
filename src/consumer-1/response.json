@@ -1,0 +1,1 @@
+{"errorType":"TypeError","errorMessage":"Cannot use 'in' operator to search for 'sigv4' in undefined","trace":["TypeError: Cannot use 'in' operator to search for 'sigv4' in undefined","    at parseFlag (/var/task/index.js:117:17)","    at exports.handler (/var/task/index.js:210:25)","    at Runtime.handleOnceNonStreaming (file:///var/runtime/index.mjs:1173:29)"]}

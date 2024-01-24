@@ -24,17 +24,18 @@ resource "aws_iam_role" "lambda_target_1_exec_role" {
 # generate an archive for the src/targets/lambda-target-1/index.js function
 data "archive_file" "lambda_target_1" {
   type        = "zip"
-  source_dir = "${path.module}/src/targets/lambda-target-1/"
-  output_path = "${path.module}/src/targets/lambda-target-1/index.zip"
+  source_dir = "${path.module}/src/service-1/targets/lambda-target-1/"
+  output_path = "${path.module}/src/service-1/targets/lambda-target-1/index.zip"
 }
 
 resource "aws_lambda_function" "lambda_target_1" {
-  filename      = "${path.module}/src/consumer-1/index.zip"
+  filename      = "${path.module}/src/service-1/targets/lambda-target-1/index.zip"
   function_name = "lambda_target_1"
   role          = aws_iam_role.lambda_target_1_exec_role.arn
   handler       = "index.handler"
   source_code_hash = data.archive_file.lambda_target_1.output_base64sha256
   runtime = "nodejs18.x"
+  timeout = "300"
 
   environment {
     variables = {

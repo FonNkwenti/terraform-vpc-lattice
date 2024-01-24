@@ -1,6 +1,6 @@
 
 
-export const handler = async (event) => {
+exports.handler = async (event, context) => {
     console.log("Hello World from Lambda target 1!");
     console.log("event===",JSON.stringify(event, null, 2))
     return {

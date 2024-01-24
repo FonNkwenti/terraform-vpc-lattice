@@ -97,7 +97,7 @@ resource "aws_vpclattice_listener_rule" "service_network_listener_rule" {
   match {
     http_match {
       path_match {
-        case_sensitive = true
+        case_sensitive = false
         match {
           prefix = "/path-1"
         }
@@ -110,17 +110,17 @@ resource "aws_vpclattice_listener_rule" "service_network_listener_rule" {
     }
 
   }
-    /*
-    action {
-        forward {
-        target_groups {
-            target_group_identifier = aws_vpclattice_target_group.lambda_1_tg.id
-        }
+    
+    # action {
+    #     forward {
+    #     target_groups {
+    #         target_group_identifier = aws_vpclattice_target_group.lambda_1_tg.id
+    #     }
 
-        }
+    #     }
 
-    }
-    */
+    # }
+    
 depends_on = [ aws_vpclattice_listener.https_listener ]
 }
 
@@ -130,4 +130,8 @@ output "lattice_service_1_id" {
 }
 output "lattice_service_1_arn" {
     value = aws_vpclattice_service.service_1.arn
+}
+
+output "lattice_service_1_network_dns_entry_domain_name" {
+  value = aws_vpclattice_service.service_1.dns_entry[0].domain_name
 }

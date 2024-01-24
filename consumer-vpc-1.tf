@@ -1,6 +1,7 @@
 
 resource "aws_vpc" "vpc_1" {
   cidr_block = "10.0.0.0/16"
+  enable_dns_hostnames = true
     tags = {
     Name = "vpc-1"
   }
@@ -42,6 +43,12 @@ resource "aws_security_group" "egress_https_vpc1" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 
@@ -58,6 +65,42 @@ resource "aws_security_group" "egress_http_vpc1" {
   }
 }
 
+resource "aws_iam_role" "flow_log" {
+  name = "flow-log-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action = "sts:AssumeRole",
+        Effect = "Allow",
+        Principal = {
+          Service = "vpc-flow-logs.amazonaws.com",
+        },
+      },
+    ],
+  })
+}
+
+resource "aws_cloudwatch_log_group" "flow_logs" {
+  name              = "/aws/vpc/vpc-1-flow-logs"
+  retention_in_days = 30  # Adjust the retention period as needed
+}
+
+resource "aws_flow_log" "vpc_flow_logs" {
+  depends_on              = [aws_vpc.vpc_1]
+  iam_role_arn            = aws_iam_role.flow_log.arn
+  log_destination_type    = "cloud-watch-logs"
+  log_destination         = aws_cloudwatch_log_group.flow_logs.arn
+  traffic_type            = "ALL"
+  vpc_id                  = aws_vpc.vpc_1.id
+  # log_format              = "$${version}"
+  max_aggregation_interval = 60
+
+  tags = {
+    Name = "vpc-1-flow-logs"
+  }
+}
 
 output "egress_https_sg_vpc1_id" {
   description = "The ID of the security group"

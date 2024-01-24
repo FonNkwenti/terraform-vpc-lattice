@@ -1,0 +1,10 @@
+{
+    "endpoint": "https://your-lattice-endpoint.com/path-1",
+    "method": "GET",
+    "data": {
+      "key1": "value1",
+      "key2": "value2"
+    },
+    "enableSigV4": true,
+    "enableDebug": false
+  }
