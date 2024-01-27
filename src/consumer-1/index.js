@@ -46,7 +46,7 @@ exports.handler = async (event, context) => {
 
 
 
-/*
+
 const AWS = require('aws-sdk')
 const https = require('https')
 const axios = require("axios")
@@ -56,7 +56,7 @@ exports.handler = async (event, context) => {
   const latticeServiceEndpoint = process.env.LATTICE_SERVICE_ENDPOINT
 
   const endpoint = `https://${latticeServiceEndpoint}/path-1`
-  console.log("endpoint", endpoint)
+  console.log("endpoint===", endpoint)
   try {
     const payload = {
       name: 'Jonathan',
@@ -82,9 +82,7 @@ exports.handler = async (event, context) => {
 }
 
 
-*/
-
-
+/*
 
 const AWS = require('aws-sdk');
 const https = require('https');
@@ -114,7 +112,7 @@ const buildResponse = (code, body) => {
 };
 
 const parseFlag = (event, flag) => {
-    return flag in event && event[flag];
+    // return flag in event && event[flag];
 };
 
 const sendRequest = async (event, addSigV4 = false, debug = false) => {
@@ -123,7 +121,7 @@ const sendRequest = async (event, addSigV4 = false, debug = false) => {
     };
 
     const endpoint = event.endpoint || `https://${latticeEndpoint}/path-1`;
-    const method = event.method || 'GET';
+    const method = event.method || 'POST';
     const data = JSON.stringify(event.data || {});
 
     const request = new AWS.HttpRequest(endpoint, region);
@@ -138,7 +136,7 @@ const sendRequest = async (event, addSigV4 = false, debug = false) => {
         })) 
 
         const credentials = new AWS.EnvironmentCredentials('AWS');
-        const signer = new AWS.Signers.V4(request, 'vpc-lattice-svcs');
+        const signer = new AWS.Signer.V4(request, 'vpc-lattice-svcs');
         signer.addAuthorization(credentials, new Date());
     }
 
@@ -225,3 +223,4 @@ exports.handler = async (event) => {
 
     return response;
 };
+*/

@@ -8,13 +8,34 @@ resource "aws_vpc" "vpc_2" {
 
 resource "aws_subnet" "subnet1_vpc2" {
   vpc_id     = aws_vpc.vpc_2.id
+  map_public_ip_on_launch = true
   cidr_block = "10.0.1.0/24"
 }
 
-resource "aws_subnet" "subnet2_vpc2" {
-  vpc_id     = aws_vpc.vpc_2.id
-  cidr_block = "10.0.2.0/24"
+// start of public subnet
+resource "aws_subnet" "public_sn" {
+  vpc_id = aws_vpc.vpc_2.id
+  cidr_block = "10.0.0.0/24" 
+  map_public_ip_on_launch = true
 }
+
+resource "aws_route_table" "public_rt" {
+  vpc_id = aws_vpc.vpc_2.id
+}
+
+resource "aws_route" "public_route" {
+    route_table_id = aws_route_table.public_rt.id
+    destination_cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id 
+
+}
+
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.vpc_2.id
+}
+
+// end of public subnet
+
 
 resource "aws_route_table" "private_vpc2" {
   vpc_id = aws_vpc.vpc_2.id
@@ -25,10 +46,7 @@ resource "aws_route_table_association" "private_subnet1_vpc2" {
   route_table_id = aws_route_table.private_vpc2.id
 }
 
-resource "aws_route_table_association" "private_subnet2_vpc2" {
-  subnet_id      = aws_subnet.subnet2_vpc2.id
-  route_table_id = aws_route_table.private_vpc2.id
-}
+
 
 resource "aws_security_group" "egress_https_vpc2" {
   name        = "allow_https"
@@ -74,7 +92,4 @@ output "vpc_2_id" {
 
 output "aws_subnet_subnet1_vpc_2_id" {
     value = aws_subnet.subnet1_vpc2.id
-}
-output "aws_subnet_subnet2_vpc_2_id" {
-    value = aws_subnet.subnet2_vpc2.id
 }

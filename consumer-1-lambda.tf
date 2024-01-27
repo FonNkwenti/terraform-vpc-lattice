@@ -23,7 +23,7 @@ data "aws_iam_policy_document" "lambda_private_permissions" {
       "ec2:DeleteNetworkInterface",
       "ec2:DescribeInstances",
       "ec2:AttachNetworkInterface",
-      "vpc-lattice:Invoke"
+      "vpc-lattice:Invoke",
     ]
     resources = ["*"]
   }
@@ -57,7 +57,7 @@ resource "aws_lambda_function" "consumer_1_lambda" {
   function_name = "consumer_1_lambda"
   role          = aws_iam_role.consumer_1_lambda_exec_role.arn
   handler       = "index.handler"
-  timeout = "90"
+  timeout = "30"
 
   source_code_hash = data.archive_file.consumer_1_lambda.output_base64sha256
 

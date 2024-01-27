@@ -16,7 +16,8 @@ resource "aws_security_group" "ssh_sg" {
 resource "aws_instance" "ec2-client" {
   ami             = "ami-09694bfab577e90b0" 
   instance_type   = "t2.micro"  
-  subnet_id       = aws_subnet.subnet1_vpc2.id
+  subnet_id       = aws_subnet.public_sn.id
+#   subnet_id       = aws_subnet.subnet1_vpc2.id
   vpc_security_group_ids = [aws_security_group.ssh_sg.id, aws_security_group.egress_http_vpc2.id, aws_security_group.ssh_sg.id]
   key_name        = "default-ue2"  
   user_data_replace_on_change = true
@@ -27,6 +28,9 @@ resource "aws_instance" "ec2-client" {
   }
 }
 
-output "instance_ip" {
+output "instance_private_ip" {
   value = aws_instance.ec2-client.private_ip
+}
+output "instance_public_ip" {
+  value = aws_instance.ec2-client.public_ip
 }
