@@ -1,6 +1,7 @@
 
 resource "aws_vpc" "vpc_2" {
   cidr_block = "10.0.0.0/16"
+  enable_dns_hostnames = true
   tags = {
     Name = "vpc-2"
   }
@@ -28,6 +29,12 @@ resource "aws_route" "public_route" {
     destination_cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.igw.id 
 
+}
+
+resource "aws_route_table_association" "public" {
+  subnet_id = aws_subnet.public_sn.id
+  route_table_id = aws_route_table.public_rt.id
+  
 }
 
 resource "aws_internet_gateway" "igw" {
@@ -75,6 +82,43 @@ resource "aws_security_group" "egress_http_vpc2" {
   }
 }
 
+
+
+resource "aws_iam_role" "flow_log_vpc2" {
+  name = "flow-log-role-vpc2"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action = "sts:AssumeRole",
+        Effect = "Allow",
+        Principal = {
+          Service = "vpc-flow-logs.amazonaws.com",
+        },
+      },
+    ],
+  })
+}
+
+resource "aws_cloudwatch_log_group" "flow_logs_vpc2" {
+  name              = "/aws/vpc/flow-logs_vpc2"
+  retention_in_days = 30  # Adjust the retention period as needed
+}
+
+resource "aws_flow_log" "vpc_flow_logs_vpc2" {
+  depends_on              = [aws_vpc.vpc_2]
+  iam_role_arn            = aws_iam_role.flow_log.arn
+  log_destination_type    = "cloud-watch-logs"
+  log_destination         = aws_cloudwatch_log_group.flow_logs_vpc2.arn
+  traffic_type            = "ALL"
+  vpc_id                  = aws_vpc.vpc_2.id
+  max_aggregation_interval = 60
+
+  tags = {
+    Name = "flow-logs-vpc2"
+  }
+}
 
 output "egress_https_sg_vpc2_id" {
   description = "The ID of the security group"

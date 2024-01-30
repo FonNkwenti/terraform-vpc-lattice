@@ -112,6 +112,11 @@ output "egress_http_sg_vpc1_id" {
   value       = aws_security_group.egress_http_vpc1.id
 }
 
+
+
+
+
+
 output "vpc_1_id" {
     value = aws_vpc.vpc_1.id
 }
