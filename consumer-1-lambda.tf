@@ -65,7 +65,7 @@ resource "aws_lambda_function" "consumer_1_lambda" {
 
   vpc_config {
     subnet_ids = [aws_subnet.subnet1_vpc1.id, aws_subnet.subnet2_vpc1.id]
-    security_group_ids = [aws_security_group.egress_https_vpc1.id]
+    security_group_ids = [aws_security_group.lattice-client-sg.id]
   }
 
     depends_on = [

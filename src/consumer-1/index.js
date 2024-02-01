@@ -55,6 +55,8 @@ exports.handler = async (event, context) => {
   console.log("event===", event)
   const latticeServiceEndpoint = process.env.LATTICE_SERVICE_ENDPOINT
 
+
+
   const endpoint = `https://${latticeServiceEndpoint}/path-1`
   console.log("endpoint===", endpoint)
   try {
@@ -83,7 +85,6 @@ exports.handler = async (event, context) => {
 
 
 /*
-
 const AWS = require('aws-sdk');
 const https = require('https');
 
@@ -116,11 +117,18 @@ const parseFlag = (event, flag) => {
 };
 
 const sendRequest = async (event, addSigV4 = false, debug = false) => {
+  console.log("event:", JSON.stringify(event, null, 2))
+
+
+  const latticeServiceEndpoint = process.env.LATTICE_SERVICE_ENDPOINT
+  console.log("latticeServiceEndpoint===", latticeServiceEndpoint)
+
+
     const headers = {
         'content-type': 'application/json',
     };
 
-    const endpoint = event.endpoint || `https://${latticeEndpoint}/path-1`;
+    const endpoint = event.endpoint || `https://${latticeServiceEndpoint}/path-1`;
     const method = event.method || 'POST';
     const data = JSON.stringify(event.data || {});
 
@@ -202,7 +210,7 @@ const sendRequest = async (event, addSigV4 = false, debug = false) => {
 exports.handler = async (event) => {
     console.log("event====",JSON.stringify(event));
 
-    const body = event.body;
+    const body = event.data;
     // const body = JSON.parse(event.body);
     
     const enableSigV4 = parseFlag(body, 'sigv4');

@@ -21,6 +21,36 @@ resource "aws_route_table" "private" {
   vpc_id = aws_vpc.vpc_1.id
 }
 
+// start of public subnet
+resource "aws_subnet" "public_sn" {
+  vpc_id = aws_vpc.vpc_1.id
+  cidr_block = "10.0.0.0/24" 
+  map_public_ip_on_launch = true
+}
+
+resource "aws_route_table" "public_rt" {
+  vpc_id = aws_vpc.vpc_1.id
+}
+
+resource "aws_route" "public_route" {
+    route_table_id = aws_route_table.public_rt.id
+    destination_cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id 
+
+}
+
+resource "aws_route_table_association" "public" {
+  subnet_id = aws_subnet.public_sn.id
+  route_table_id = aws_route_table.public_rt.id
+  
+}
+
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.vpc_1.id
+}
+
+// end of public subnet
+
 resource "aws_route_table_association" "private_subnet1_vpc1" {
   subnet_id      = aws_subnet.subnet1_vpc1.id
   route_table_id = aws_route_table.private.id
@@ -32,38 +62,34 @@ resource "aws_route_table_association" "private_subnet2_vpc1" {
 }
 
 
-resource "aws_security_group" "egress_https_vpc1" {
+resource "aws_security_group" "lattice-client-sg" {
   name        = "allow_https"
   description = "Allow HTTPS outbound traffic"
   vpc_id      = aws_vpc.vpc_1.id
 
   egress {
+    description = "Allow HTTPS outbound traffic"
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-
-resource "aws_security_group" "egress_http_vpc1" {
-  name        = "allow_http"
-  description = "Allow HTTP outbound traffic"
-  vpc_id      = aws_vpc.vpc_1.id
-
   egress {
+    description = "Allow HTTP outbound traffic"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  ingress {
+    description = "Allow Client Subnet"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["10.0.0.0/16"]
+  }
 }
+
 
 resource "aws_iam_role" "flow_log" {
   name = "flow-log-role"
@@ -102,19 +128,10 @@ resource "aws_flow_log" "vpc_flow_logs" {
   }
 }
 
-output "egress_https_sg_vpc1_id" {
+output "lattice-client-sg" {
   description = "The ID of the security group"
-  value       = aws_security_group.egress_https_vpc1.id
+  value       = aws_security_group.lattice-client-sg.id
 }
-
-output "egress_http_sg_vpc1_id" {
-  description = "The ID of the security group"
-  value       = aws_security_group.egress_http_vpc1.id
-}
-
-
-
-
 
 
 output "vpc_1_id" {

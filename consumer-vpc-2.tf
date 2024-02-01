@@ -13,35 +13,35 @@ resource "aws_subnet" "subnet1_vpc2" {
   cidr_block = "10.0.1.0/24"
 }
 
-// start of public subnet
-resource "aws_subnet" "public_sn" {
-  vpc_id = aws_vpc.vpc_2.id
-  cidr_block = "10.0.0.0/24" 
-  map_public_ip_on_launch = true
-}
+# // start of public subnet
+# resource "aws_subnet" "public_sn" {
+#   vpc_id = aws_vpc.vpc_2.id
+#   cidr_block = "10.0.0.0/24" 
+#   map_public_ip_on_launch = true
+# }
 
-resource "aws_route_table" "public_rt" {
-  vpc_id = aws_vpc.vpc_2.id
-}
+# resource "aws_route_table" "public_rt" {
+#   vpc_id = aws_vpc.vpc_2.id
+# }
 
-resource "aws_route" "public_route" {
-    route_table_id = aws_route_table.public_rt.id
-    destination_cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.igw.id 
+# resource "aws_route" "public_route" {
+#     route_table_id = aws_route_table.public_rt.id
+#     destination_cidr_block = "0.0.0.0/0"
+#     gateway_id = aws_internet_gateway.igw.id 
 
-}
+# }
 
-resource "aws_route_table_association" "public" {
-  subnet_id = aws_subnet.public_sn.id
-  route_table_id = aws_route_table.public_rt.id
+# resource "aws_route_table_association" "public" {
+#   subnet_id = aws_subnet.public_sn.id
+#   route_table_id = aws_route_table.public_rt.id
   
-}
+# }
 
-resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.vpc_2.id
-}
+# resource "aws_internet_gateway" "igw" {
+#   vpc_id = aws_vpc.vpc_2.id
+# }
 
-// end of public subnet
+# // end of public subnet
 
 
 resource "aws_route_table" "private_vpc2" {

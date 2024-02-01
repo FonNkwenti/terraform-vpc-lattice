@@ -11,7 +11,7 @@ resource "aws_vpclattice_service_network" "service_network" {
 resource "aws_vpclattice_service_network_vpc_association" "vpc_1_association" {
   vpc_identifier             = aws_vpc.vpc_1.id
   service_network_identifier = aws_vpclattice_service_network.service_network.id
-  security_group_ids         = [aws_security_group.egress_http_vpc1.id]
+  security_group_ids         = [aws_security_group.lattice-client-sg.id]
 }
 resource "aws_vpclattice_service_network_vpc_association" "vpc_2_association" {
   vpc_identifier             = aws_vpc.vpc_2.id

@@ -3,7 +3,7 @@
 resource "aws_security_group" "ssh_sg" {
   name        = "ssh_sg"
   description = "Allow SSH traffic"
-  vpc_id      = aws_vpc.vpc_2.id
+  vpc_id      = aws_vpc.vpc_1.id
   
 
   ingress {
@@ -16,7 +16,7 @@ resource "aws_security_group" "ssh_sg" {
 resource "aws_security_group" "ping_sg" {
   name        = "ping security group"
   description = "Allow ICMP traffic"
-  vpc_id      = aws_vpc.vpc_2.id
+  vpc_id      = aws_vpc.vpc_1.id
 
  egress {
     from_port   = 0
@@ -38,7 +38,7 @@ resource "aws_instance" "ec2-client" {
   subnet_id       = aws_subnet.public_sn.id
   # subnet_id       = aws_subnet.subnet1_vpc1.id
 #   subnet_id       = aws_subnet.subnet1_vpc2.id
-  vpc_security_group_ids = [aws_security_group.ssh_sg.id, aws_security_group.egress_http_vpc2.id, aws_security_group.egress_https_vpc2.id, aws_security_group.ping_sg.id]
+  vpc_security_group_ids = [aws_security_group.lattice-client-sg.id, aws_security_group.ping_sg.id]
   key_name        = "default-ue2"  
   iam_instance_profile = aws_iam_instance_profile.lattice_ec2_client_profile.name
   user_data_replace_on_change = true
