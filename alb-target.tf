@@ -1,21 +1,30 @@
-resource "aws_vpc" "service_2_vpc" {
+resource "aws_vpc" "alb_vpc" {
   cidr_block = "10.0.0.0/16"
 
   enable_dns_hostnames = true
   enable_dns_support = true
 
   tags = {
-    Name = "service-2-vpc"
+    Name = "alb-vpc"
   }
 }
 
-resource "aws_subnet" "asg_subnet" {
-  vpc_id                  = aws_vpc.service_2_vpc.id
-  cidr_block             = "10.0.0.0/24"
+resource "aws_subnet" "asg_subnet_1" {
+  vpc_id                  = aws_vpc.alb_vpc.id
+  cidr_block             = "10.0.4.0/24"
   map_public_ip_on_launch = false
-#   availability_zone = "us-east-1a"
+  availability_zone = "us-east-2a"
 tags = {
-    Name = "asg_subnet"
+    Name = "asg-subnet-1"
+  }
+}
+resource "aws_subnet" "asg_subnet_2" {
+  vpc_id                  = aws_vpc.alb_vpc.id
+  cidr_block             = "10.0.5.0/24"
+  map_public_ip_on_launch = false
+  availability_zone = "us-east-2b"
+tags = {
+    Name = "asg-subnet-2"
   }
 }
 
@@ -25,7 +34,7 @@ resource "aws_launch_template" "service_2_asg_template" {
   name_prefix = "service-2-asg-template"
   image_id = "ami-09694bfab577e90b0" 
   instance_type = "t2.micro" 
-#   user_data = filebase64("${path.module}/webserver.sh")
+  user_data = filebase64("${path.module}/webserver.sh")
   iam_instance_profile {
     arn = aws_iam_instance_profile.asg_profile.arn
   }
@@ -44,19 +53,19 @@ resource "aws_autoscaling_group" "service_2_asg" {
   min_size = 2
   max_size = 4
   desired_capacity = 2
-  vpc_zone_identifier = [aws_subnet.asg_subnet.id]
+  vpc_zone_identifier = [aws_subnet.asg_subnet_1.id, aws_subnet.asg_subnet_2.id]
   target_group_arns = [aws_lb_target_group.service_2_asg_tg.arn]
   health_check_type = "ELB"
 
 }
 
-resource "aws_autoscaling_policy" "service-2-asg-policy" {
-name = "cpu-scaling-policy"
+resource "aws_autoscaling_policy" "service_2_asg_policy" {
+    name = "cpu-scaling-policy"
+    policy_type = "TargetTrackingScaling" 
     adjustment_type = "ChangeInCapacity"
-    cooldown = 300
+    # cooldown = 300
     metric_aggregation_type = "Average"
 
-    scaling_adjustment = 1
 
     target_tracking_configuration {
       predefined_metric_specification {
@@ -74,7 +83,7 @@ resource "aws_lb" "service_2_alb" {
   name = "service-2-alb"
   internal = true
   load_balancer_type = "application"
-  subnets = [aws_subnet.asg_subnet.id]
+  subnets = [aws_subnet.asg_subnet_1.id, aws_subnet.asg_subnet_2.id]
   security_groups = [aws_security_group.service_2_alb_sg.id]
 }
 
@@ -83,7 +92,7 @@ resource "aws_lb_target_group" "service_2_asg_tg" {
   name = "web-server-tg"
   port = 80
   protocol = "HTTP"
-  vpc_id = aws_vpc.service_2_vpc.id
+  vpc_id = aws_vpc.alb_vpc.id
   target_type = "instance"
 
   health_check {
@@ -135,7 +144,7 @@ EOF
 
 resource "aws_security_group" "service_2_asg_sg" {
   name = "web-server-sg"
-  vpc_id = aws_vpc.service_2_vpc.id
+  vpc_id = aws_vpc.alb_vpc.id
 
   # Allow inbound HTTP traffic from the ALB
   ingress {
@@ -158,7 +167,7 @@ resource "aws_security_group" "service_2_asg_sg" {
 
 resource "aws_security_group" "service_2_alb_sg" {
   name = "service-2-alb-sg"
-  vpc_id = aws_vpc.service_2_vpc.id
+  vpc_id = aws_vpc.alb_vpc.id
   # Allow inbound HTTP traffic from internal sources (if relevant)
   ingress {
     description = "allow web traffic from internal sources"
@@ -270,7 +279,7 @@ resource "aws_security_group" "service_2_alb_sg" {
 # }
 
 output "vpc_id" {
-  value = aws_vpc.service_2_vpc.id
+  value = aws_vpc.alb_vpc.id
 }
 output "target_group_arns" {
   value = [aws_lb_target_group.service_2_asg_tg.arn]

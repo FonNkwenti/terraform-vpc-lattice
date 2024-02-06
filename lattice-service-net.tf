@@ -20,8 +20,14 @@ resource "aws_vpclattice_service_network_vpc_association" "vpc_2_association" {
 }
 
 # create vpc lattice service network service association for our service
-resource "aws_vpclattice_service_network_service_association" "service_association" {
+resource "aws_vpclattice_service_network_service_association" "service_1_association" {
     service_identifier = aws_vpclattice_service.service_1.id
+    service_network_identifier = aws_vpclattice_service_network.service_network.id
+
+
+}
+resource "aws_vpclattice_service_network_service_association" "service_2_association" {
+    service_identifier = aws_vpclattice_service.service_2.id
     service_network_identifier = aws_vpclattice_service_network.service_network.id
 
 
